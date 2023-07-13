@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -69,7 +70,7 @@ func run(app *cli.Context, cfg *cmds.Server, leaderControllers server.CustomCont
 		return err
 	}
 
-	if !cfg.DisableAgent && os.Getuid() != 0 && !cfg.Rootless {
+	if runtime.GOOS != "windows" && !cfg.DisableAgent && os.Getuid() != 0 && !cfg.Rootless {
 		return fmt.Errorf("server must run as root, or with --rootless and/or --disable-agent")
 	}
 

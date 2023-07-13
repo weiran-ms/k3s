@@ -43,6 +43,11 @@ if [ -z "$VERSION_RUNC" ]; then
     VERSION_RUNC="v0.0.0"
 fi
 
+VERSION_RUNHCS=$(grep github.com/Microsoft/hcsshim go.mod | head -n1 | awk '{print $4}')
+if [ -z "$VERSION_RUNHCS" ]; then
+    VERSION_RUNHCS="v0.0.0"
+fi
+
 VERSION_FLANNEL=$(grep github.com/flannel-io/flannel go.mod | head -n1 | awk '{print $2}')
 if [ -z "$VERSION_FLANNEL" ]; then
   VERSION_FLANNEL="v0.0.0"

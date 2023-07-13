@@ -1,0 +1,61 @@
+#!/bin/bash
+set -e -x
+
+cd $(dirname $0)/..
+
+. ./scripts/version.sh
+
+GO=${GO-go}
+
+export MSYS=winsymlinks:nativestrict
+
+for i in crictl kubectl k3s-agent k3s-server k3s-token k3s-etcd-snapshot k3s-secrets-encrypt k3s-certificate k3s-completion; do
+    rm -f bin/$i.exe
+    ln -s k3s.exe bin/$i.exe
+done
+
+
+cp contrib/util/check-config.sh bin/check-config
+
+rm -rf build/data
+mkdir -p build/data build/out
+mkdir -p dist/artifacts
+
+(
+    set +x
+    cd bin
+    find . -not -path '*/\.*' -type f -exec sha256sum {} \; | sed -e 's/*.\///g' | sort -k2 >.sha256sums
+    (
+        for f in $(find . -type l); do
+            echo $f $(readlink $f)
+        done
+    ) | sed -e 's|^\./||' -e 's/\//\\/g' | sort >.links
+    set -x
+)
+
+tar cvf ./build/out/data.tar ./bin
+zstd --no-progress -T0 -16 -f --long=25 --rm ./build/out/data.tar -o ./build/out/data.tar.zst
+HASH=$(sha256sum ./build/out/data.tar.zst | awk '{print $1}')
+
+cp ./build/out/data.tar.zst ./build/data/${HASH}.tar.zst
+
+BIN_SUFFIX=".exe"
+
+CMD_NAME=dist/artifacts/k3s${BIN_SUFFIX}
+
+mkdir -p build/static
+
+"${GO}" run pkg/codegen/main.go
+"${GO}" fmt pkg/deploy/zz_generated_bindata.go
+"${GO}" fmt pkg/static/zz_generated_bindata.go
+
+LDFLAGS="
+    -X github.com/k3s-io/k3s/pkg/version.Version=$VERSION
+    -X github.com/k3s-io/k3s/pkg/version.GitCommit=${COMMIT:0:8}
+    -w -s
+"
+TAGS="urfave_cli_no_docs"
+STATIC="-extldflags '-static'"
+CGO_ENABLED=0 "${GO}" build -tags "$TAGS" -ldflags "$LDFLAGS $STATIC" -o ${CMD_NAME} ./cmd/k3s/main.go
+
+stat ${CMD_NAME}

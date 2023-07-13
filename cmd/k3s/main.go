@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 
+	"github.com/k3s-io/k3s/cmd/k3s/util"
 	"github.com/k3s-io/k3s/pkg/cli/cmds"
 	"github.com/k3s-io/k3s/pkg/configfilearg"
 	"github.com/k3s-io/k3s/pkg/data"
@@ -186,9 +186,9 @@ func stageAndRun(dataDir, cmd string, args []string) error {
 
 	var pathEnv string
 	if findPreferBundledBin(args) {
-		pathEnv = filepath.Join(dir, "bin") + ":" + filepath.Join(dir, "bin/aux") + ":" + os.Getenv("PATH")
+		pathEnv = filepath.Join(dir, "bin") + util.PATH_ENV_SEPARATOR + filepath.Join(dir, "bin/aux") + util.PATH_ENV_SEPARATOR + os.Getenv("PATH")
 	} else {
-		pathEnv = filepath.Join(dir, "bin") + ":" + os.Getenv("PATH") + ":" + filepath.Join(dir, "bin/aux")
+		pathEnv = filepath.Join(dir, "bin") + util.PATH_ENV_SEPARATOR + os.Getenv("PATH") + util.PATH_ENV_SEPARATOR + filepath.Join(dir, "bin/aux")
 	}
 	if err := os.Setenv("PATH", pathEnv); err != nil {
 		return err
@@ -204,7 +204,7 @@ func stageAndRun(dataDir, cmd string, args []string) error {
 
 	logrus.Debugf("Running %s %v", cmd, args)
 
-	if err := syscall.Exec(cmd, args, os.Environ()); err != nil {
+	if err := util.Exec(cmd, args); err != nil {
 		return errors.Wrapf(err, "exec %s failed", cmd)
 	}
 	return nil

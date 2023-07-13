@@ -23,34 +23,6 @@ import (
 )
 
 const (
-	cniConf = `{
-  "name":"cbr0",
-  "cniVersion":"1.0.0",
-  "plugins":[
-    {
-      "type":"flannel",
-      "delegate":{
-        "hairpinMode":true,
-        "forceAddress":true,
-        "isDefaultGateway":true
-      }
-    },
-    {
-      "type":"portmap",
-      "capabilities":{
-        "portMappings":true
-      }
-    },
-    {
-      "type":"bandwidth",
-      "capabilities":{
-        "bandwidth":true
-      }
-    }
-  ]
-}
-`
-
 	flannelConf = `{
 	"Network": "%CIDR%",
 	"EnableIPv6": %IPV6_ENABLED%,
@@ -153,13 +125,19 @@ func createCNIConf(dir string, nodeConfig *config.Node) error {
 	if dir == "" {
 		return nil
 	}
-	p := filepath.Join(dir, "10-flannel.conflist")
+	p := filepath.Join(dir, cniConfFileName)
 
 	if nodeConfig.AgentConfig.FlannelCniConfFile != "" {
 		logrus.Debugf("Using %s as the flannel CNI conf", nodeConfig.AgentConfig.FlannelCniConfFile)
 		return util.CopyFile(nodeConfig.AgentConfig.FlannelCniConfFile, p)
 	}
-	return util.WriteFile(p, cniConf)
+
+	cniConfig, err := getCniConf(nodeConfig)
+	if err != nil {
+		return err
+	}
+
+	return util.WriteFile(p, cniConfig)
 }
 
 func createFlannelConf(nodeConfig *config.Node) error {

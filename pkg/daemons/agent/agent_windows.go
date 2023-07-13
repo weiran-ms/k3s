@@ -55,6 +55,8 @@ func kubeletArgs(cfg *config.Agent) map[string]string {
 		"authentication-token-webhook": "true",
 		"anonymous-auth":               "false",
 		"authorization-mode":           modes.ModeWebhook,
+		"cgroups-per-qos":              "false",
+		"enforce-node-allocatable":     "",
 	}
 	if cfg.PodManifests != "" && argsMap["pod-manifest-path"] == "" {
 		argsMap["pod-manifest-path"] = cfg.PodManifests

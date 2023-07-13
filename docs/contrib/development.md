@@ -20,7 +20,7 @@ Either way, if one still wants to build and test K3s on non-Linux environments, 
 
 ### Windows Setup
 
-To build K3s on Windows is only possible for versions that support Windows Subsystem for Linux (WSL). If the development environment in question has Windows 10, Version 2004, Build 19041 or higher, [follow these instructions to install WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-win10); otherwise, use a Linux Virtual machine instead.
+See [Building for Windows](../../BUILDING_Windows.md) for details.
 
 ### macOS Setup
 

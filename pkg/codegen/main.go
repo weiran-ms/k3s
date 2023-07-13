@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 
 	bindata "github.com/go-bindata/go-bindata"
 	v1 "github.com/k3s-io/k3s/pkg/apis/k3s.cattle.io/v1"
@@ -67,17 +68,20 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	controllergen.Run(args.Options{
-		OutputPackage: "github.com/k3s-io/k3s/pkg/generated",
-		Boilerplate:   "scripts/boilerplate.go.txt",
-		Groups: map[string]args.Group{
-			"k3s.cattle.io": {
-				Types: []interface{}{
-					v1.Addon{},
+	// controller-gen cannot run on Windows
+	if runtime.GOOS != "windows" {
+		controllergen.Run(args.Options{
+			OutputPackage: "github.com/k3s-io/k3s/pkg/generated",
+			Boilerplate:   "scripts/boilerplate.go.txt",
+			Groups: map[string]args.Group{
+				"k3s.cattle.io": {
+					Types: []interface{}{
+						v1.Addon{},
+					},
+					GenerateTypes:   true,
+					GenerateClients: true,
 				},
-				GenerateTypes:   true,
-				GenerateClients: true,
 			},
-		},
-	})
+		})
+	}
 }
