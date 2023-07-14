@@ -4,6 +4,7 @@
 package flannel
 
 import (
+    "github.com/k3s-io/k3s/pkg/daemons/config"
 )
 
 const (
@@ -37,6 +38,6 @@ const (
 	cniConfFileName = "10-flannel.conflist"
 )
 
-func getCniConf(_ *config.Node) string {
-	return cniConf
+func getCniConf(_ *config.Node) (string, error) {
+	return cniConf, nil
 }
